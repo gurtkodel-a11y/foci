@@ -1,0 +1,33 @@
+[polling]
+interval_minutes = 60
+
+[feed]
+# Unread items older than this are auto-archived (the feed is not a debt)
+item_expiry_days = 14
+
+[cache]
+article_max_age_days = 30
+audio_max_age_days = 90
+
+[queue]
+# A queued video cannot be downloaded until this many minutes have elapsed.
+# The deliberation gap.
+minimum_age_minutes = 120
+max_concurrent_downloads = 1
+# yt-dlp format selector. Default caps at 720p to respect a slow connection.
+# See https://github.com/yt-dlp/yt-dlp#format-selection for syntax.
+video_format = "bestvideo[height<=720]+bestaudio/best[height<=720]/best"
+
+[budget]
+# Soft daily limit on articles consumed. Shows a notice in the UI; not a hard block.
+daily_article_soft_limit = 20
+
+[storage]
+data_dir = "data"
+cache_dir = "data/cache"
+downloads_dir = "data/downloads"
+
+[server]
+# Local web server for browser redirect landing page and optional web UI
+host = "127.0.0.1"
+port = 6366

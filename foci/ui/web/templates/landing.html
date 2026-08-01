@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foci</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      color: #2d2d2d;
+      background: #f7f7f5;
+      max-width: 620px;
+      margin: 3.5rem auto;
+      padding: 0 1.25rem 4rem;
+    }
+
+    /* Header */
+    .wordmark {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: #bbb;
+      margin: 0 0 0.3rem;
+    }
+    .redirect-notice {
+      font-size: 0.9rem;
+      color: #888;
+      margin: 0 0 2.5rem;
+    }
+    .redirect-notice strong { color: #555; }
+
+    /* Section headers */
+    h2 {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin: 0 0 0.55rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid #ebebea;
+    }
+
+    section { margin-bottom: 2rem; }
+
+    /* Feed items */
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #f0f0ee;
+    }
+    .item:last-child { border-bottom: none; }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-title {
+      margin: 0 0 0.15rem;
+      font-size: 0.93rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      margin: 0;
+      font-size: 0.77rem;
+      color: #aaa;
+    }
+
+    /* Download button */
+    .item-action { flex-shrink: 0; padding-top: 0.1rem; }
+    .item-action form { margin: 0; }
+    button {
+      font-size: 0.77rem;
+      font-family: inherit;
+      padding: 0.28rem 0.7rem;
+      border: 1px solid #d8d8d4;
+      border-radius: 4px;
+      background: #fff;
+      color: #666;
+      cursor: pointer;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    button:hover {
+      background: #eef6f2;
+      border-color: #a8ccc0;
+      color: #3d7a62;
+    }
+
+    /* Waiting time label */
+    .waiting-time {
+      flex-shrink: 0;
+      font-size: 0.77rem;
+      color: #ccc;
+      padding-top: 0.25rem;
+      white-space: nowrap;
+    }
+
+    /* Overflow note */
+    .overflow-note {
+      font-size: 0.78rem;
+      color: #ccc;
+      margin: 0.4rem 0 0;
+    }
+    .overflow-note code {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 0.9em;
+      color: #bbb;
+    }
+
+    /* Empty state */
+    .empty {
+      font-size: 0.88rem;
+      color: #bbb;
+      padding: 0.5rem 0;
+    }
+    .empty code {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 0.9em;
+      color: #bbb;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 2.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ebebea;
+      font-size: 0.78rem;
+      color: #ccc;
+    }
+    .stats { margin: 0 0 0.35rem; }
+    .disable-hint { margin: 0; }
+    .disable-hint code {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 0.95em;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="wordmark">FOCI</p>
+
+  {% if blocked_host %}
+  <p class="redirect-notice">
+    You navigated to <strong>{{ blocked_host }}</strong> — that site is blocked.
+    Here's what you actually have waiting.
+  </p>
+  {% endif %}
+
+  {# ── Eligible downloads ───────────────────────────────────────────── #}
+  {% if eligible_entries %}
+  <section>
+    <h2>Ready to download</h2>
+    {% for entry in eligible_entries %}
+    <div class="item">
+      <div class="item-info">
+        <p class="item-title" title="{{ entry.item.title }}">{{ entry.item.title }}</p>
+        <p class="item-meta">
+          {{ entry.item.source.name }}{% if entry.item.duration %} &middot; {{ entry.item.duration | duration }}{% endif %}
+        </p>
+      </div>
+      <div class="item-action">
+        <form method="POST" action="/queue/download/{{ entry.id }}">
+          <button type="submit">Download</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {# ── Waiting queue entries ─────────────────────────────────────────── #}
+  {% if waiting_entries %}
+  <section>
+    <h2>Queued — not yet eligible</h2>
+    {% for entry in waiting_entries %}
+    <div class="item">
+      <div class="item-info">
+        <p class="item-title" title="{{ entry.item.title }}">{{ entry.item.title }}</p>
+        <p class="item-meta">{{ entry.item.source.name }}</p>
+      </div>
+      <div class="waiting-time">{{ entry.eligible_at | humantime }}</div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {# ── Unread articles ───────────────────────────────────────────────── #}
+  {% if unread_articles %}
+  <section>
+    <h2>Unread articles ({{ total_unread }})</h2>
+    {% for item in unread_articles %}
+    <div class="item">
+      <div class="item-info">
+        <p class="item-title" title="{{ item.title }}">{{ item.title }}</p>
+        <p class="item-meta">{{ item.source.name }}</p>
+      </div>
+    </div>
+    {% endfor %}
+    {% if total_unread > unread_articles | length %}
+    <p class="overflow-note">
+      &hellip; and {{ total_unread - (unread_articles | length) }} more.
+      Run <code>foci cache read &lt;id&gt;</code> or <code>foci feed list</code>.
+    </p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# ── Empty state ───────────────────────────────────────────────────── #}
+  {% if not eligible_entries and not waiting_entries and not unread_articles %}
+  <section>
+    <p class="empty">
+      Nothing queued or unread right now.<br>
+      Try <code>foci feed poll</code> to check for new items.
+    </p>
+  </section>
+  {% endif %}
+
+  {# ── Footer ────────────────────────────────────────────────────────── #}
+  <div class="footer">
+    <p class="stats">
+      Today: {{ usage.articles_read }} article{{ usage.articles_read | pluralize }} read
+      &middot; {{ usage.videos_watched }} video{{ usage.videos_watched | pluralize }} watched
+    </p>
+    <p class="disable-hint">
+      To remove the block: <code>foci block remove</code> (requires admin)
+    </p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Domains redirected to the local Foci landing page.
+# Add any site you want to keep at arm's length.
+blocked = [
+    "youtube.com",
+    "www.youtube.com",
+    "reddit.com",
+    "www.reddit.com",
+    "twitter.com",
+    "www.twitter.com",
+    "x.com",
+    "www.x.com",
+    "tiktok.com",
+    "www.tiktok.com",
+    "instagram.com",
+    "www.instagram.com",
+    "facebook.com",
+    "www.facebook.com",
+]
+
+# Domains that are NEVER blocked, regardless of what's in the blocked list.
+# Add anything you genuinely need for daily life.
+# Policy: additions here should be considered deliberately.
+whitelist = [
+    # banking / utilities / necessities — fill in as needed
+    # "bankname.com",
+    # "rentportal.com",
+]

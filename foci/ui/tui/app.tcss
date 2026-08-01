@@ -1,0 +1,34 @@
+/* Foci TUI stylesheet */
+
+Screen {
+    background: $surface;
+}
+
+/* ── Feed / Queue tables ─────────────────────────── */
+
+DataTable {
+    height: 1fr;
+}
+
+DataTable > .datatable--header {
+    color: $text-muted;
+    text-style: bold;
+}
+
+DataTable > .datatable--cursor {
+    background: $accent 20%;
+}
+
+/* ── Stats panel ─────────────────────────────────── */
+
+#stats-content {
+    height: 1fr;
+    padding: 2 4;
+}
+
+/* ── Reader screen ───────────────────────────────── */
+
+MarkdownViewer {
+    height: 1fr;
+    padding: 0 2;
+}

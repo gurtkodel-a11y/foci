@@ -1,0 +1,21 @@
+# Add your subscriptions here.
+# type: "rss" covers RSS, Atom, and most podcast feeds.
+#       "youtube" uses yt-dlp to fetch channel uploads as feed items.
+#
+# [[sources]]
+# name = "My Favorite Blog"
+# url = "https://example.com/feed.xml"
+# type = "rss"
+# tags = ["blogs"]
+#
+# [[sources]]
+# name = "A Podcast I Like"
+# url = "https://example.com/podcast.rss"
+# type = "rss"
+# tags = ["podcasts"]
+#
+# [[sources]]
+# name = "A YouTube Channel"
+# url = "https://www.youtube.com/@handle"
+# type = "youtube"
+# tags = ["video"]
