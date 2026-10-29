@@ -170,8 +170,9 @@ sudo foci serve --port 80
 
 - Everything runs locally. No cloud services, no accounts, no external APIs beyond the feeds.
 - No tracking, no analytics, no phoning home.
-- Designed for slow internet — video format capped at 720p by default; article caching avoids
-  re-visiting sites.
+- Bandwidth is no longer a constraint (it used to be). Video format is capped at 720p by default
+  as a preference, not a necessity; article caching exists to avoid re-visiting sites, not to save
+  bandwidth.
 - Prefer correctness and simplicity over cleverness. This is a personal tool.
 
 ## Planned / Future Features
