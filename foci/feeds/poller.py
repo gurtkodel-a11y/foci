@@ -95,6 +95,7 @@ def _poll_rss(source: db.Source, settings: Settings) -> int:
                 "url": data["url"],
                 "description": data["description"],
                 "media_type": data["media_type"],
+                "enclosure_url": data["enclosure_url"],
                 "estimated_size": data["estimated_size"],
                 "duration": data["duration"],
                 "published_at": data["published_at"],

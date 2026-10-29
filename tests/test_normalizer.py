@@ -96,6 +96,7 @@ class TestNormalizeEntry:
         assert result["media_type"] == "audio"
         assert result["duration"] == 5025          # 1h 23m 45s
         assert result["estimated_size"] == 12345678
+        assert result["enclosure_url"] == "https://example.com/ep1.mp3"
 
     def test_youtube_source_type_forces_video(self):
         entry = _first_entry(RSS_ARTICLE)

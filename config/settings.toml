@@ -14,7 +14,7 @@ audio_max_age_days = 90
 # The deliberation gap.
 minimum_age_minutes = 120
 max_concurrent_downloads = 1
-# yt-dlp format selector. Default caps at 720p to respect a slow connection.
+# yt-dlp format selector. Default caps at 720p (a preference, not a bandwidth limit).
 # See https://github.com/yt-dlp/yt-dlp#format-selection for syntax.
 video_format = "bestvideo[height<=720]+bestaudio/best[height<=720]/best"
 

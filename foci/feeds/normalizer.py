@@ -22,6 +22,7 @@ def normalize_entry(entry, source_type: str) -> dict | None:
         "url": url,
         "description": _extract_description(entry),
         "media_type": _detect_media_type(entry, source_type),
+        "enclosure_url": _extract_enclosure_url(entry),
         "estimated_size": _extract_size(entry),
         "duration": _extract_duration(entry),
         "published_at": _extract_published(entry),
@@ -67,6 +68,23 @@ def _detect_media_type(entry, source_type: str) -> str:
             return "video"
 
     return "article"
+
+
+def _extract_enclosure_url(entry) -> str | None:
+    """URL of the first audio enclosure, if any."""
+    for enc in getattr(entry, "enclosures", []):
+        mime = (getattr(enc, "type", "") or "").lower()
+        href = (getattr(enc, "href", "") or "").strip()
+        if mime.startswith("audio/") and href:
+            return href
+
+    for media in getattr(entry, "media_content", []):
+        mime = (media.get("type") or "").lower()
+        href = (media.get("url") or "").strip()
+        if mime.startswith("audio/") and href:
+            return href
+
+    return None
 
 
 def _extract_size(entry) -> int | None:

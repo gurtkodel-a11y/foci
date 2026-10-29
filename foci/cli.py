@@ -233,7 +233,7 @@ def feed_list(status, limit):
 
 @cli.group()
 def cache():
-    """Cache articles locally for offline reading."""
+    """Cache articles and podcast audio locally."""
 
 
 @cache.command("fetch")
@@ -241,6 +241,7 @@ def cache():
 def cache_fetch(item_id):
     """Download and cache a single article by item ID."""
     from foci.cache.articles import fetch_article, is_cached
+    from foci.cache.audio import fetch_audio
 
     settings = _init_db()
     try:
@@ -249,8 +250,8 @@ def cache_fetch(item_id):
         click.echo(f"No item with ID {item_id}.", err=True)
         return
 
-    if item.media_type != "article":
-        click.echo(f"Item {item_id} is a {item.media_type}, not an article.", err=True)
+    if item.media_type not in ("article", "audio"):
+        click.echo(f"Item {item_id} is a {item.media_type}, not an article or audio.", err=True)
         return
 
     if is_cached(item):
@@ -259,7 +260,8 @@ def cache_fetch(item_id):
 
     click.echo(f"Fetching: {item.title}")
     try:
-        entry = fetch_article(item, settings)
+        fetch = fetch_audio if item.media_type == "audio" else fetch_article
+        entry = fetch(item, settings)
         click.echo(f"Cached to: {entry.local_path}")
     except Exception as exc:
         click.echo(f"Error: {exc}", err=True)
@@ -277,6 +279,39 @@ def cache_fetch_all():
     skipped = sum(1 for v in results.values() if v == "skip")
     errors = sum(1 for v in results.values() if v not in ("ok", "skip"))
     click.echo(f"\nDone. {ok} fetched, {skipped} already cached, {errors} error(s).")
+
+
+@cache.command("fetch-audio")
+def cache_fetch_audio():
+    """Download all unread podcast episodes that aren't yet cached."""
+    from foci.cache.audio import fetch_all_unread
+
+    settings = _init_db()
+    results = fetch_all_unread(settings, on_progress=click.echo)
+
+    ok = sum(1 for v in results.values() if v == "ok")
+    skipped = sum(1 for v in results.values() if v == "skip")
+    errors = sum(1 for v in results.values() if v not in ("ok", "skip"))
+    click.echo(f"\nDone. {ok} downloaded, {skipped} already cached, {errors} error(s).")
+
+
+@cache.command("path")
+@click.argument("item_id", type=int)
+def cache_path(item_id):
+    """Print the local file path of a cached audio episode (e.g. to pass to a player)."""
+    from foci.cache.audio import cached_path
+
+    _init_db()
+    try:
+        item = database.Item.get_by_id(item_id)
+    except database.Item.DoesNotExist:
+        click.echo(f"No item with ID {item_id}.", err=True)
+        return
+
+    try:
+        click.echo(cached_path(item))
+    except FileNotFoundError:
+        click.echo(f"Not cached yet. Run: foci cache fetch {item_id}", err=True)
 
 
 @cache.command("read")
@@ -320,12 +355,12 @@ def cache_read(item_id, plain):
 
 @cache.command("list")
 def cache_list():
-    """List all cached articles."""
+    """List all cached articles and audio."""
     _init_db()
     entries = (
         database.CacheEntry.select()
         .join(database.Item)
-        .where(database.Item.media_type == "article")
+        .where(database.Item.media_type.in_(["article", "audio"]))
         .order_by(database.CacheEntry.cached_at.desc())
     )
     count = 0
@@ -333,9 +368,10 @@ def cache_list():
         count += 1
         status = entry.item.status
         cached = entry.cached_at.strftime("%Y-%m-%d")
-        click.echo(f"  [{entry.item.id}] {cached}  [{status}]  {entry.item.title}")
+        kind = "aud" if entry.item.media_type == "audio" else "art"
+        click.echo(f"  [{entry.item.id}] {cached}  {kind}  [{status}]  {entry.item.title}")
     if count == 0:
-        click.echo("No cached articles. Run: foci cache fetch-all")
+        click.echo("Nothing cached. Run: foci cache fetch-all (articles) or fetch-audio")
 
 
 # ---------------------------------------------------------------------------

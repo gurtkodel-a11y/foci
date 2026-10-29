@@ -27,13 +27,17 @@ All core features are implemented. The following is what exists and is tested:
 | Feed polling (RSS + YouTube) | `foci/feeds/poller.py`, `normalizer.py` | Done |
 | Feed maintenance (expiry, mute, budget) | `foci/feeds/maintenance.py` | Done |
 | Article caching | `foci/cache/articles.py` | Done |
+| Podcast audio caching | `foci/cache/audio.py` | Done |
 | Video download queue | `foci/queue/downloader.py` | Done |
 | Hosts-file blocker | `foci/block.py` | Done — cross-platform (Windows + macOS) |
 | Web landing page | `foci/ui/web/app.py`, `templates/landing.html` | Done |
 | Terminal UI | `foci/ui/tui/app.py` | Done |
 | CLI entry point | `foci/cli.py` | Done |
 
-Podcast audio download (`foci/cache/audio.py`) is the one planned module not yet implemented.
+Audio is downloaded from the feed enclosure URL (`db.Item.enclosure_url`, added with an automatic
+migration for existing databases) via `foci cache fetch <id>` or `foci cache fetch-audio`. There is
+no built-in player; `foci cache path <id>` prints the file path. `cache.audio_max_age_days` is
+configured but no cleanup of old cached audio exists yet.
 
 ## Architecture Notes
 
@@ -92,6 +96,7 @@ foci/
       maintenance.py    # Expiry, consumption tracking, mute helpers
     cache/
       articles.py       # Article fetch + trafilatura extraction
+      audio.py          # Podcast audio download (streamed from feed enclosure)
     queue/
       downloader.py     # yt-dlp wrapper + queue state management
     ui/
@@ -114,6 +119,7 @@ foci/
     test_normalizer.py
     test_poller.py
     test_cache_articles.py
+    test_cache_audio.py
     test_downloader.py
     test_block.py
     test_web.py
@@ -177,7 +183,7 @@ sudo foci serve --port 80
 
 ## Planned / Future Features
 
-- `foci/cache/audio.py` — podcast/audio download (the one unimplemented planned module)
+- Cleanup of cached audio older than `cache.audio_max_age_days`
 - Periodic scheduling (`apscheduler`) so `foci feed poll` runs automatically
 - Weekly digest view — a summary of what arrived this week
 - Stats per source surfaced in the TUI (items received vs. consumed over time)
