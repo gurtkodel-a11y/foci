@@ -33,7 +33,7 @@ def fetch_audio(item: db.Item, settings: Settings) -> db.CacheEntry:
     if not item.enclosure_url:
         raise ValueError(
             f"Item {item.id} ({item.title!r}) has no audio file URL. "
-            "It may have been polled before audio support; it will be filled in on re-poll."
+            "It was probably polled before audio caching existed."
         )
 
     cache_dir = _audio_cache_dir(settings)
