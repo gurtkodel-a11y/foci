@@ -37,8 +37,8 @@ All core features are implemented. The following is what exists and is tested:
 Audio is downloaded from the feed enclosure URL (`db.Item.enclosure_url`, added with an automatic
 migration for existing databases) via `foci cache fetch <id>` or `foci cache fetch-audio`. There is
 no built-in player; `foci cache path <id>` prints the file path. `foci cache clean [--dry-run]` deletes cached
-audio older than `cache.audio_max_age_days` (by cache date; feed items are kept). It is manual,
-not run automatically after polling. `cache.article_max_age_days` is configured but unused.
+audio older than `cache.audio_max_age_days` (by cache date; feed items are kept). It also
+runs automatically at the end of `foci feed poll`. `cache.article_max_age_days` is configured but unused.
 
 ## Architecture Notes
 

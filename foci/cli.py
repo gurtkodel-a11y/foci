@@ -147,6 +147,12 @@ def feed_poll():
     if expired:
         click.echo(f"Archived {expired} item(s) past their expiry date.")
 
+    # Delete cached audio past its max age
+    from foci.cache.audio import clean_expired_audio
+    removed = clean_expired_audio(settings)
+    if removed:
+        click.echo(f"Removed {removed} cached audio file(s) past their max age.")
+
 
 @feed.command("expire")
 def feed_expire():
