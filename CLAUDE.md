@@ -36,8 +36,9 @@ All core features are implemented. The following is what exists and is tested:
 
 Audio is downloaded from the feed enclosure URL (`db.Item.enclosure_url`, added with an automatic
 migration for existing databases) via `foci cache fetch <id>` or `foci cache fetch-audio`. There is
-no built-in player; `foci cache path <id>` prints the file path. `cache.audio_max_age_days` is
-configured but no cleanup of old cached audio exists yet.
+no built-in player; `foci cache path <id>` prints the file path. `foci cache clean [--dry-run]` deletes cached
+audio older than `cache.audio_max_age_days` (by cache date; feed items are kept). It is manual,
+not run automatically after polling. `cache.article_max_age_days` is configured but unused.
 
 ## Architecture Notes
 
@@ -183,7 +184,6 @@ sudo foci serve --port 80
 
 ## Planned / Future Features
 
-- Cleanup of cached audio older than `cache.audio_max_age_days`
 - Periodic scheduling (`apscheduler`) so `foci feed poll` runs automatically
 - Weekly digest view — a summary of what arrived this week
 - Stats per source surfaced in the TUI (items received vs. consumed over time)

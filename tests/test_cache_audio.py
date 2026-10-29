@@ -5,10 +5,19 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import patch
 
+import datetime
+
 import pytest
 
 from foci import db
-from foci.cache.audio import cached_path, fetch_all_unread, fetch_audio, _extension
+from foci.cache.audio import (
+    _extension,
+    cached_path,
+    clean_expired_audio,
+    expired_audio,
+    fetch_all_unread,
+    fetch_audio,
+)
 from foci.config import Settings, StorageConfig
 
 
@@ -154,3 +163,46 @@ class TestMigration:
         db.init(path)
         assert "enclosure_url" in {c.name for c in db._db.get_columns("items")}
         db.init(path)  # second run is a no-op
+
+
+class TestCleanExpiredAudio:
+    def _cache(self, source, tmp_settings, n, age_days):
+        item = _episode(source, n)
+        with patch("foci.cache.audio._download", side_effect=_fake_download()):
+            entry = fetch_audio(item, tmp_settings)
+        entry.cached_at = datetime.datetime.utcnow() - datetime.timedelta(days=age_days)
+        entry.save()
+        return item, entry
+
+    def test_removes_only_old_audio(self, source, tmp_settings):
+        _, old = self._cache(source, tmp_settings, 1, tmp_settings.cache.audio_max_age_days + 1)
+        new_item, new = self._cache(source, tmp_settings, 2, 1)
+
+        assert clean_expired_audio(tmp_settings) == 1
+
+        assert not Path(old.local_path).exists()
+        assert Path(new.local_path).exists()
+        assert db.CacheEntry.select().count() == 1
+        assert cached_path(new_item) == Path(new.local_path)
+
+    def test_keeps_feed_item(self, source, tmp_settings):
+        item, _ = self._cache(source, tmp_settings, 1, 1000)
+        clean_expired_audio(tmp_settings)
+        assert db.Item.get_by_id(item.id).status == "unread"
+
+    def test_missing_file_still_removes_entry(self, source, tmp_settings):
+        _, entry = self._cache(source, tmp_settings, 1, 1000)
+        Path(entry.local_path).unlink()
+        assert clean_expired_audio(tmp_settings) == 1
+        assert db.CacheEntry.select().count() == 0
+
+    def test_ignores_articles(self, source, tmp_settings):
+        article = db.Item.create(source=source, guid="a", title="A", url="https://x/a",
+                                 media_type="article", status="unread")
+        db.CacheEntry.create(
+            item=article, local_path="x.md", content_type="text/markdown",
+            cached_at=datetime.datetime.utcnow() - datetime.timedelta(days=1000),
+        )
+        assert expired_audio(tmp_settings) == []
+        assert clean_expired_audio(tmp_settings) == 0
+        assert db.CacheEntry.select().count() == 1

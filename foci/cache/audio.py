@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import logging
 import mimetypes
 from collections.abc import Callable
@@ -99,6 +100,35 @@ def fetch_all_unread(
             _emit(on_progress, f"    → error: {exc}")
 
     return results
+
+
+def expired_audio(settings: Settings) -> list[db.CacheEntry]:
+    """Cache entries for audio cached longer ago than cache.audio_max_age_days."""
+    cutoff = datetime.datetime.utcnow() - datetime.timedelta(days=settings.cache.audio_max_age_days)
+    return list(
+        db.CacheEntry.select()
+        .join(db.Item)
+        .where(db.Item.media_type == "audio", db.CacheEntry.cached_at < cutoff)
+        .order_by(db.CacheEntry.cached_at)
+    )
+
+
+def clean_expired_audio(settings: Settings) -> int:
+    """
+    Delete cached audio files past their max age and drop their cache entries.
+    The feed items themselves are untouched. Returns the number of entries removed.
+    """
+    removed = 0
+    for entry in expired_audio(settings):
+        try:
+            Path(entry.local_path).unlink(missing_ok=True)
+        except OSError as exc:
+            # Keep the entry so the file is retried next run rather than orphaned
+            logger.warning("Could not delete %s: %s", entry.local_path, exc)
+            continue
+        entry.delete_instance()
+        removed += 1
+    return removed
 
 
 # ---------------------------------------------------------------------------

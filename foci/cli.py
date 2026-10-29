@@ -295,6 +295,26 @@ def cache_fetch_audio():
     click.echo(f"\nDone. {ok} downloaded, {skipped} already cached, {errors} error(s).")
 
 
+@cache.command("clean")
+@click.option("--dry-run", is_flag=True, help="List what would be deleted without deleting.")
+def cache_clean(dry_run):
+    """Delete cached audio older than cache.audio_max_age_days."""
+    from foci.cache.audio import clean_expired_audio, expired_audio
+
+    settings = _init_db()
+    days = settings.cache.audio_max_age_days
+
+    if dry_run:
+        entries = expired_audio(settings)
+        for entry in entries:
+            click.echo(f"  [{entry.item.id}] {entry.cached_at:%Y-%m-%d}  {entry.item.title}")
+        click.echo(f"{len(entries)} cached audio file(s) older than {days} days.")
+        return
+
+    count = clean_expired_audio(settings)
+    click.echo(f"Removed {count} cached audio file(s) older than {days} days.")
+
+
 @cache.command("path")
 @click.argument("item_id", type=int)
 def cache_path(item_id):
