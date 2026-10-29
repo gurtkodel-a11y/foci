@@ -92,8 +92,16 @@ class TestGetEligible:
         assert get_eligible() == []
 
     def test_excludes_non_pending_statuses(self, video_item):
-        for status in ("downloading", "completed", "cancelled", "failed"):
-            _make_entry(video_item, minutes_ago=10, status=status)
+        for i, status in enumerate(("downloading", "completed", "cancelled", "failed")):
+            item = db.Item.create(
+                source=video_item.source,
+                guid=f"youtube:status-{i}",
+                title=f"Video {status}",
+                url=f"https://www.youtube.com/watch?v=status{i}",
+                media_type="video",
+                status="unread",
+            )
+            _make_entry(item, minutes_ago=10, status=status)
         assert get_eligible() == []
 
 

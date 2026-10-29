@@ -18,8 +18,10 @@ from foci.ui.web.app import create_app, _fmt_duration, _fmt_humantime, _pluraliz
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(autouse=True)
-def in_memory_db():
-    db._db.init(":memory:")
+def in_memory_db(tmp_path):
+    # TestClient serves requests on another thread; a ":memory:" DB is per-connection,
+    # so use a file-backed DB to keep the schema visible to the app.
+    db._db.init(str(tmp_path / "test.db"))
     db._db.connect(reuse_if_open=True)
     db._db.create_tables(db.MODELS, safe=True)
     yield
@@ -96,11 +98,11 @@ class TestFmtDuration:
 
 class TestFmtHumantime:
     def test_future_minutes(self):
-        future = datetime.datetime.utcnow() + datetime.timedelta(minutes=47)
+        future = datetime.datetime.utcnow() + datetime.timedelta(minutes=47, seconds=30)
         assert _fmt_humantime(future) == "in 47m"
 
     def test_future_hours_exact(self):
-        future = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        future = datetime.datetime.utcnow() + datetime.timedelta(hours=2, seconds=30)
         result = _fmt_humantime(future)
         assert result.startswith("in 2h") or result.startswith("in 1h")  # timing tolerance
 

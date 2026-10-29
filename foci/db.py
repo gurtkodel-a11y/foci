@@ -60,6 +60,7 @@ class Item(BaseModel):
     media_type = CharField()  # "article" | "audio" | "video" | "other"
     estimated_size = IntegerField(null=True)  # bytes
     duration = IntegerField(null=True)  # seconds
+    enclosure_url = CharField(null=True)  # direct media file URL (podcast audio)
     published_at = DateTimeField(null=True)
     fetched_at = DateTimeField(default=datetime.datetime.utcnow)
     expires_at = DateTimeField(null=True)
@@ -121,6 +122,14 @@ def init(db_path: Path) -> None:
     _db.init(str(db_path))
     _db.connect(reuse_if_open=True)
     _db.create_tables(MODELS, safe=True)
+    _migrate()
+
+
+def _migrate() -> None:
+    """Add columns introduced after a database was first created."""
+    columns = {c.name for c in _db.get_columns("items")}
+    if "enclosure_url" not in columns:
+        _db.execute_sql("ALTER TABLE items ADD COLUMN enclosure_url VARCHAR(255)")
 
 
 def get_db() -> SqliteDatabase:

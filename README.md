@@ -267,7 +267,7 @@ Key settings in [`config/settings.toml`](config/settings.toml):
 | `polling.interval_minutes` | 60 | How often to poll feeds (if using a scheduler) |
 | `feed.item_expiry_days` | 14 | Unread items are auto-archived after this many days |
 | `queue.minimum_age_minutes` | 120 | Videos cannot be downloaded until this long after queuing |
-| `queue.video_format` | `bestvideo[height<=720]+bestaudio/…` | yt-dlp format selector; 720p cap respects slow connections |
+| `queue.video_format` | `bestvideo[height<=720]+bestaudio/…` | yt-dlp format selector; 720p cap is a preference |
 | `budget.daily_article_soft_limit` | 20 | Article count that triggers a soft notice (not a hard block) |
 | `server.port` | 6366 | Default web server port; use 80 for the browser block to work |
 

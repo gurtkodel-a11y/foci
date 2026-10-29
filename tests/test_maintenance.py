@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import itertools
 
 import pytest
 
@@ -46,13 +47,16 @@ def yt_source():
     return db.Source.create(name="Test Channel", url="https://yt.com/@c", type="youtube")
 
 
+_guid_counter = itertools.count()
+
+
 def _article(source, *, days_old=0, expires_in=14, status="unread"):
     now = datetime.datetime.utcnow()
     pub = now - datetime.timedelta(days=days_old)
     expires = now + datetime.timedelta(days=expires_in)
     return db.Item.create(
         source=source,
-        guid=f"guid-{days_old}-{status}-{expires_in}",
+        guid=f"guid-{days_old}-{status}-{expires_in}-{next(_guid_counter)}",
         title=f"Article {days_old}d old",
         url="https://blog.com/1",
         media_type="article",
