@@ -101,9 +101,9 @@ def create_app(settings: Settings) -> FastAPI:
             )
 
         return templates.TemplateResponse(
+            request,
             "landing.html",
             {
-                "request": request,
                 "blocked_host": blocked_host,
                 "eligible_entries": eligible_entries,
                 "waiting_entries": waiting_entries,
